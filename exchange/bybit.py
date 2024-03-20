@@ -41,10 +41,10 @@ class Bybit(Exchange):
             raise InvalidAffiliateException()
 
         if trade_volume < env.MIN_TRADE_VOLUME:
-            raise NotEnoughTradingVolumeException(env.MIN_TRADE_VOLUME)
+            raise NotEnoughTradingVolumeException()
 
         if deposit < env.MIN_DEPOSIT:
-            raise NotEnoughDepositException(env.MIN_DEPOSIT)
+            raise NotEnoughDepositException()
 
         return Affiliate(
             user_id=affiliate_id,

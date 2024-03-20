@@ -2,26 +2,32 @@ from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup
 )
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from enums import Button
 from enums.callbacks import Callback
 from settings import get_env
 
 env = get_env()
 
-keyboard = InlineKeyboardMarkup(
+markup = InlineKeyboardMarkup(
     inline_keyboard=[[
         InlineKeyboardButton(
-            text=Button.REGISTER,
+            text='Регистрация',
             url=env.REGISTER_URL
         ),
         InlineKeyboardButton(
-            text=Button.CHECK_UID,
+            text='Прислать UID',
             callback_data=Callback.CHECK_UID
         ),
         InlineKeyboardButton(
-            text=Button.ALREADY_AFFILIATE,
+            text='Я уже партнер',
             callback_data=Callback.ALREADY_AFFILIATE
         )
     ]]
 )
+
+builder = InlineKeyboardBuilder(markup=markup.inline_keyboard)
+
+builder.adjust(1, repeat=True)
+
+keyboard = builder.as_markup()

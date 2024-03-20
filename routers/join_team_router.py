@@ -5,10 +5,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from affiliate.exceptions import AffiliateException
-from enums import Button, Text
 from enums.callbacks import Callback
 from exchange import Bybit
 from markups.keyboards import join_team_keyboard
+from redis_client import client
 from settings import get_env
 from states import CheckUserIdState
 
@@ -18,30 +18,27 @@ env = get_env()
 bybit = Bybit()
 
 
-@router.message(F.text == Button.JOIN_TEAM)
-async def join_team_handler(message: Message, bot: Bot) -> None:
-    await bot.send_message(
-        chat_id=message.from_user.id,
-        text=Text.JOIN_TEAM,
-        reply_markup=join_team_keyboard
-    )
-
-
 @router.callback_query(F.data == Callback.ALREADY_AFFILIATE)
-async def register_user_handler(callback: CallbackQuery, bot: Bot) -> None:
-    await bot.send_message(
+async def already_affiliate_handler(callback: CallbackQuery, bot: Bot) -> None:
+    already_affiliate = await client.get('already_affiliate')
+
+    await bot.send_photo(
         callback.from_user.id,
-        text=Text.ALREADY_AFFILIATE,
+        photo=await client.get('change_affiliation_file'),
+        caption=already_affiliate,
         reply_markup=join_team_keyboard
     )
     await callback.answer()
 
 
 @router.callback_query(F.data == Callback.CHECK_UID)
-async def register_user_handler(callback: CallbackQuery, state: FSMContext, bot: Bot) -> None:
-    await bot.send_message(
+async def check_user_id_start_handler(callback: CallbackQuery, state: FSMContext, bot: Bot) -> None:
+    check_uid = await client.get('check_uid')
+
+    await bot.send_photo(
         callback.from_user.id,
-        text=Text.CHECK_UID,
+        photo=await client.get('find_uid_file'),
+        caption=check_uid
     )
     await callback.answer()
     await state.set_state(CheckUserIdState.enter_uid)
@@ -56,10 +53,10 @@ async def enter_user_id(message: Message, state: FSMContext, bot: Bot) -> None:
     try:
         affiliate = await bybit.get_affiliate(message.text)
     except AffiliateException as e:
-        await bot.send_message(tg_user_id, e.get_message())
+        await bot.send_message(tg_user_id, await e.get_message())
         return
     except aiohttp.ClientError as e:
-        await bot.send_message(tg_user_id, Text.REQUEST_UID_ERROR)
+        await bot.send_message(tg_user_id, await client.get('request_uid_error'))
         return
 
     try:
@@ -68,12 +65,12 @@ async def enter_user_id(message: Message, state: FSMContext, bot: Bot) -> None:
             member_limit=1
         )
     except aiogram.exceptions.AiogramError:
-        await bot.send_message(tg_user_id, text=Text.UNSUCCESSFUL_CHECK)
+        await bot.send_message(tg_user_id, text='Ошибка, не удалось сгенерировать ссылку.')
         return
 
-    await bot.send_message(tg_user_id, text=Text.SUCCESSFUL_CHECK.format(invite_link.invite_link))
+    await bot.send_message(tg_user_id, text=f'Отлично, вот ваша ссылка: {invite_link.invite_link}')
 
 
 @router.message(CheckUserIdState.enter_uid)
 async def enter_user_id_not_valid_user_id(message: Message, bot: Bot) -> None:
-    await bot.send_message(message.from_user.id, Text.INVALID_UID_FORMAT)
+    await bot.send_message(message.from_user.id, await client.get('invalid_uid_format'))

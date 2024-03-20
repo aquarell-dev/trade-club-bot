@@ -12,6 +12,7 @@ class Environment(BaseSettings):
     GROUP_ID: str
     MIN_TRADE_VOLUME: int
     MIN_DEPOSIT: int
+    REDIS_URL: str
 
     class Config:
         env_file = ".env"

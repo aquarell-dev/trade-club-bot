@@ -1,24 +1,24 @@
-from enums import Text
+from redis_client import client
 
 
 class AffiliateException(Exception):
-    def __init__(self, message: str):
-        self._message = message
+    def __init__(self, key: str):
+        self._key = key
 
-    def get_message(self) -> str:
-        return self._message
+    async def get_message(self) -> str:
+        return await client.get(self._key)
 
 
 class InvalidAffiliateException(AffiliateException):
     def __init__(self):
-        super().__init__(Text.AFFILIATE_NOT_FOUND)
+        super().__init__('affiliate_not_found')
 
 
 class NotEnoughDepositException(AffiliateException):
-    def __init__(self, min_deposit: int):
-        super().__init__(Text.NOT_ENOUGH_DEPOSIT.format(min_deposit))
+    def __init__(self):
+        super().__init__('not_enough_deposit')
 
 
 class NotEnoughTradingVolumeException(AffiliateException):
-    def __init__(self, trading_volume: int):
-        super().__init__(Text.NOT_ENOUGH_TRADING_VOLUME.format(trading_volume))
+    def __init__(self):
+        super().__init__('not_enough_trading_volume')
