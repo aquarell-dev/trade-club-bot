@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class Button(str, Enum):
-    JOIN_TEAM = '😆Вступить1'
+    JOIN_TEAM = 'Вступить в клуб'
     REGISTER = 'Регистрация'
-    CHECK_UID = 'Проверить UID'
+    CHECK_UID = 'Прислать UID'
     ALREADY_AFFILIATE = 'Я уже партнер'
