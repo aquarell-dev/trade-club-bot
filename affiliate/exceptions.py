@@ -9,6 +9,11 @@ class AffiliateException(Exception):
         return await client.get(self._key)
 
 
+class AffiliateAlreadyExists(AffiliateException):
+    def __init__(self):
+        super().__init__('affiliate_already_exists')
+
+
 class InvalidAffiliateException(AffiliateException):
     def __init__(self):
         super().__init__('affiliate_not_found')

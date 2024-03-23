@@ -4,11 +4,6 @@ import json
 import time
 
 from affiliate import Affiliate
-from affiliate.exceptions import (
-    InvalidAffiliateException,
-    NotEnoughDepositException,
-    NotEnoughTradingVolumeException
-)
 from exchange import Exchange
 from settings import get_env
 
@@ -33,23 +28,10 @@ class Bybit(Exchange):
 
         affiliate_data = response.get('result', {})
 
-        affiliate_id = affiliate_data.get('uid', '-1')
-        trade_volume = float(affiliate_data.get('tradeVol365Day', 0))
-        deposit = float(affiliate_data.get('depositAmount365Day', 0))
-
-        if response.get('retCode', -1) != 0 or affiliate_id == '-1':
-            raise InvalidAffiliateException()
-
-        if trade_volume < env.MIN_TRADE_VOLUME:
-            raise NotEnoughTradingVolumeException()
-
-        if deposit < env.MIN_DEPOSIT:
-            raise NotEnoughDepositException()
-
         return Affiliate(
-            user_id=affiliate_id,
-            trade_volume=trade_volume,
-            deposit=deposit
+            user_id=affiliate_data.get('uid', '-1'),
+            trade_volume=float(affiliate_data.get('tradeVol365Day', 0)),
+            deposit=float(affiliate_data.get('depositAmount365Day', 0))
         )
 
     def _get_headers(self, method: str, payload: dict) -> dict:

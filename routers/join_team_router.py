@@ -5,20 +5,19 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from affiliate.exceptions import (
-    InvalidAffiliateException,
+    AffiliateAlreadyExists, InvalidAffiliateException,
     NotEnoughDepositException, NotEnoughTradingVolumeException
 )
 from enums.callbacks import Callback
-from exchange import Bybit
 from markups.keyboards import join_team_keyboard, start_keyboard
 from redis_client import client
+from services.affiliate_service import add_affiliate
 from settings import get_env
 from states import CheckUserIdState
 
 router = Router()
 
 env = get_env()
-bybit = Bybit()
 
 
 @router.callback_query(F.data == Callback.ALREADY_AFFILIATE)
@@ -42,6 +41,7 @@ async def handle_start(callback: CallbackQuery, bot: Bot) -> None:
         caption=await client.get('welcome'),
         reply_markup=join_team_keyboard
     )
+    await callback.answer()
 
 
 @router.callback_query(F.data == Callback.CHECK_UID)
@@ -61,10 +61,8 @@ async def check_user_id_start_handler(callback: CallbackQuery, state: FSMContext
 async def enter_user_id(message: Message, state: FSMContext, bot: Bot) -> None:
     await state.clear()
 
-    tg_user_id = message.from_user.id
-
     try:
-        affiliate = await bybit.get_affiliate(message.text)
+        await add_affiliate(message.text)
     except InvalidAffiliateException as e:
         await bot.send_photo(
             message.from_user.id,
@@ -73,12 +71,18 @@ async def enter_user_id(message: Message, state: FSMContext, bot: Bot) -> None:
             reply_markup=start_keyboard
         )
         return
-    except (NotEnoughDepositException, NotEnoughTradingVolumeException) as e:
-        await bot.send_message(tg_user_id, await e.get_message(), reply_markup=start_keyboard)
+    except (
+        NotEnoughDepositException, NotEnoughTradingVolumeException, AffiliateAlreadyExists
+    ) as e:
+        await bot.send_message(
+            message.from_user.id,
+            await e.get_message(),
+            reply_markup=start_keyboard
+        )
         return
     except aiohttp.ClientError as e:
         await bot.send_message(
-            tg_user_id,
+            message.from_user.id,
             await client.get('request_uid_error'),
             reply_markup=start_keyboard
         )
@@ -91,14 +95,14 @@ async def enter_user_id(message: Message, state: FSMContext, bot: Bot) -> None:
         )
     except aiogram.exceptions.AiogramError:
         await bot.send_message(
-            tg_user_id,
+            message.from_user.id,
             text='Ошибка, не удалось сгенерировать ссылку.',
             reply_markup=start_keyboard
         )
         return
 
     await bot.send_message(
-        tg_user_id,
+        message.from_user.id,
         text=f'Отлично, вот ваша <i>одноразовая</i> ссылка на доступ в Клуб: {invite_link.invite_link}',
         reply_markup=start_keyboard
     )
