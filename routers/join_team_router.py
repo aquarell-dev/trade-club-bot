@@ -99,7 +99,7 @@ async def enter_user_id(message: Message, state: FSMContext, bot: Bot) -> None:
 
     await bot.send_message(
         tg_user_id,
-        text=f'Отлично, вот ваша ссылка: {invite_link.invite_link}',
+        text=f'Отлично, вот ваша <i>одноразовая</i> ссылка на доступ в Клуб: {invite_link.invite_link}',
         reply_markup=start_keyboard
     )
 
