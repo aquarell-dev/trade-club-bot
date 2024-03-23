@@ -20,7 +20,7 @@ markup = InlineKeyboardMarkup(
             callback_data=Callback.CHECK_UID
         ),
         InlineKeyboardButton(
-            text='Я уже партнер',
+            text='Я не ваш партнер',
             callback_data=Callback.ALREADY_AFFILIATE
         )
     ]]
