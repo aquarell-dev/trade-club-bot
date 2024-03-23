@@ -12,10 +12,13 @@ services:
     image: "redis"
     volumes:
       - redis:/var/lib/redis
+      - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - "6379:6379"
     links:
       - redis-commander
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   redis-commander:
     image: rediscommander/redis-commander:latest
@@ -27,3 +30,4 @@ services:
 
 volumes:
   redis:
+  redis-data:
