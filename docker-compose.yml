@@ -11,7 +11,7 @@ services:
       - redis
 
   redis:
-    image: "redis:7.2alpine"
+    image: "redis"
     volumes:
       - ./redis/data:/data
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
