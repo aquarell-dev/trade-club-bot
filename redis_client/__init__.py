@@ -4,4 +4,8 @@ from settings import get_env
 
 env = get_env()
 
-client = redis.from_url(env.REDIS_URL)
+client = redis.Redis(
+    host=env.REDIS_HOST,
+    port=env.REDIS_PORT,
+    password=env.REDIS_PASSWORD
+)

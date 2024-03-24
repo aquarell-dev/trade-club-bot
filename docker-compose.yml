@@ -18,7 +18,12 @@ services:
     ports:
       - "6379:6379"
     privileged: true
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is empty}"
+    env_file:
+      - .env
 
   redis-insight:
     image: redislabs/redisinsight:1.14.0
